@@ -37,3 +37,28 @@ def honu_net(HONUs = []):
 def xavier_init(n):
     x = np.sqrt(6./(n))
     return np.random.uniform(-x, x, n).astype(np.float32)
+
+def normalize(X, axis = 0):
+    if len(X.shape) > 1:
+        means = np.mean(X, axis)
+        stds = np.std(X, axis)
+        norm_equation = lambda row: (row-means) / stds
+        return (np.apply_along_axis(norm_equation, axis, X)), [means, stds]
+    else:
+        mean = np.mean(X)
+        std = np.std(X)
+        return (X-mean) / std, [mean, std]
+
+def sliding_window_vector(X, history):
+    return np.array([X[i:(i+history)] for i in range(len(X)) if len(X[i:(i+history)]) == history])
+
+def swv(X, history): return sliding_window_vector(X, history)
+
+def sliding_window_output(Y, history, prediction): return swv(Y[history+prediction-1:], 1)
+
+def swo(Y, history, prediction): return sliding_window_output(Y, history, prediction)
+
+def input_output_aligment(input, output): 
+    return input[:output.shape[0]], output
+
+def ioa(input, output): return input_output_aligment(input, output)

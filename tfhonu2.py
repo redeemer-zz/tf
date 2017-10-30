@@ -3,29 +3,43 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import numpy as np
 import tensorflow as tf
 from tf_honu import *
+import matplotlib
+matplotlib.use('Qt5Agg')
+import matplotlib.pyplot as plt
 
 max_loss = 1e-10
 
-def norm_equation_row(row, mean_vec, std_vec):
-    return 
+time = np.arange(0,100,0.1, dtype=np.float32)
+data = 2 * time 
+y = data #+ np.random.uniform(-0.05, 0.05, len(time))
+# y = data
+# y = np.arange(10)
+wlen = 2
+pred = 1
 
-def normalize(X):
-    means = np.mean(X, 0)
-    stds = np.std(X, 0)
-    norm_equation = lambda row: (row-means) / stds
-    return (np.apply_along_axis(norm_equation, 1, X)), [means, stds]
+y, _ = normalize(y)
+
+x_train = swv(y, wlen)[:100,:]
+y_train = swo(y, wlen, 1)[:100,:]
+x_train, _ = ioa(x_train, y_train)
+
+# print(x_train)
+# print(y_train)
+# exit()
+#plt.plot(time, y)
+#plt.show()
 
 ### Training data
-x_t = np.array([[1, 2, 3], [2, 3, 3], [1, 3, 4,], [2, 2, 3]])
+#x_t = np.array([[1, 2, 3], [2, 3, 3], [1, 3, 4,], [2, 2, 3]])
 # x_t, _ = normalize(x_t)
-target_weights = np.array([0.5, 1, 2])
-y_train = x_t.dot(target_weights)+2
+#target_weights = np.array([0.5, 1, 2])
+#y_train = x_t.dot(target_weights)+2
 
 # print(honu_net([x_train, make_qnu(x_train)]))
-# x_train = make_lnu(x_t)
-x_train = make_qnu(x_t, False)
-x_train, _ = normalize(x_train)
-x_train = add_bias(x_train)
+# x_train = make_lnu(x_train)
+# x_train = make_qnu(x_train, False)
+# x_train = add_bias(x_train)
+# print(x_train)
 
 # x_train = honu_net([x_train_lnu, x_train_qnu])
 
@@ -50,6 +64,10 @@ with tf.Session() as sess:
         weight = sess.run(W)
 
         if error < max_loss: break
+        print('Iteration {0}, error: {1}'.format(i, error))
 
-print('Iteration {0}, error: {1}'.format(i, error))
-print(weight)
+    print('Iteration {0}, error: {1}'.format(i, error))
+    # print(weight)
+    plt.plot(time[:100], y_train)
+    plt.plot(time[1:101], sess.run(honu, {X: x_train, y: y_train}), 'r')
+    plt.show()
