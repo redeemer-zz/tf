@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from copy import copy
 
 def add_bias(X):
@@ -81,3 +82,83 @@ def input_output_aligment(input, output):
     return input[:output.shape[0]], output
 
 def ioa(input, output): return input_output_aligment(input, output)
+
+def plot_training(model, loss, *args, **kwargs):
+    training_set_in = None
+    training_set_out = None
+    training_set_xaxis = None
+    weights = None
+    m = None
+    if kwargs is not None:
+        for key, value in kwargs.items():
+            if key in ('training_set_input', 'ind'):
+                training_set_in = value
+            if key in ('training_set_output', 'outd'):
+                training_set_out = value
+            if key in ('training_set_xaxis', 'datax'):
+                training_set_xaxis = value
+            if key in ('weights', 'w'):
+                weights = value
+            if key in ('message', 'm'):
+                message = value
+    sub_plot_n = 1
+    sub_plot = 1
+    if (training_set_in is not None) or (training_set_out is not None):
+        sub_plot_n += 1
+    if weights is not None:
+        sub_plot_n += 1
+
+    fig = plt.figure()
+    if (training_set_in is not None) or (training_set_out is not None):
+
+        plt.subplot('{0}1{1}'.format(sub_plot_n, sub_plot))
+        if training_set_out is not None:
+            if training_set_xaxis is not None:
+                plt.plot(training_set_xaxis, training_set_out, 'b', label = 'Training set output')
+            else:
+                plt.plot(training_set_out, 'b', label = 'Training set output')
+        if training_set_in is not None:
+            outputs = model(training_set_in).data.tolist()
+            if training_set_xaxis is not None:
+                plt.plot(training_set_xaxis, outputs, 'r', label = 'HONU output')
+            else:
+                plt.plot(outputs, 'r', label = 'HONU output')
+        sub_plot += 1
+        plt.legend()
+
+
+    plt.subplot('{0}1{1}'.format(sub_plot_n, sub_plot))
+    plt.plot(loss, label = 'Loss')
+    plt.legend()
+    sub_plot += 1
+    if weights is not None:
+        plt.subplot('{0}1{1}'.format(sub_plot_n, sub_plot))
+
+        colormap = plt.cm.gist_ncar
+        plt.plot(weights)
+        legend = []
+        for idx in range(len(weights)):
+            legend.append('w{0}'.format(idx))
+        plt.legend(legend, ncol=7, loc='upper center')
+    plt.tight_layout()
+    return fig
+
+def plot_test(model, x, y, lossfcn='E'):
+    model_output = model(x).data.tolist()
+    try:
+        loss_function = {'E': lambda x, y: (x-y)
+                        }[lossfcn]
+    except KeyError as e:
+        raise Exception('Unknown less evaluation method {0}', loss)
+    loss = loss_function(model_output, y)
+
+    fig = plt.figure()
+    plt.subplot('211')
+    plt.plot(y, label = 'Test set output')
+    plt.plot(model_output, 'r', label = 'Model output')
+    plt.legend()
+    plt.subplot('212')
+    plt.plot(loss, label = 'Loss')
+    plt.legend()
+
+    return fig
